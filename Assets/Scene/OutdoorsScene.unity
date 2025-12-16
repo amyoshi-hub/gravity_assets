@@ -390,6 +390,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 883484697}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &362222667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 362222670}
+  - component: {fileID: 362222669}
+  - component: {fileID: 362222668}
+  m_Layer: 0
+  m_Name: NetWork
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &362222668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 362222667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c225b0aaa68231c4fb3bdaa1bd7c011d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client
+  host: 172.20.10.8
+  port: 3333
+  do_you_send: 0
+--- !u!114 &362222669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 362222667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6473be91135c0e145bfa87b41f903a70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Server
+--- !u!4 &362222670
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 362222667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10.72813, y: 0, z: 21.30684}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &382163977
 GameObject:
   m_ObjectHideFlags: 0
@@ -1193,6 +1253,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 63ac5b1f4f593634e810acd974fd1bd4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1566323476}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 63ac5b1f4f593634e810acd974fd1bd4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1566323479}
   m_SourcePrefab: {fileID: 100100000, guid: 63ac5b1f4f593634e810acd974fd1bd4, type: 3}
 --- !u!1 &1566323475 stripped
 GameObject:
@@ -1247,6 +1310,24 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1566323479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1566323475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc15fc9f0d74bcc46b7f9dd00cfb987b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarRigid
+  car: {fileID: 0}
+  moveSpeed: 10
+  resistance: 10
+  friction: 10
+  sripValue: 10
+  forceThreadhold: 0.5
 --- !u!1001 &1701218749
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1643,3 +1724,4 @@ SceneRoots:
   - {fileID: 1421526700}
   - {fileID: 1094277985}
   - {fileID: 1566323474}
+  - {fileID: 362222670}
