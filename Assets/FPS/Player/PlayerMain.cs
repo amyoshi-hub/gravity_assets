@@ -38,6 +38,9 @@ public class PlayerMain : MonoBehaviour
     //[SerializeField] private Attacker _attacker;
     [SerializeField] private int mode_range = 3;
 
+    [Header("Current State")]
+    [SerializeField] private PlayerState _activeState;
+
     [Header("Collision")]
     //[SerializeField] private InteractCollision _interactCollision;
     //[SerializeField] private ItemCollector _itemCollector;
@@ -55,10 +58,10 @@ public class PlayerMain : MonoBehaviour
     private Transform _mainCameraTransform;
     private Game.CameraControl.MouseLook _mouseLook;
 
-    // ★修正1: CharacterControllerの宣言を追加
-    private CharacterController _characterController;
+    
+    public CharacterController _characterController;
 
-    private Vector2 _inputMove;
+    public Vector2 InputMove;
     private float _verticalVelocity;
     private bool _isGroundedPrev;
 
@@ -99,9 +102,14 @@ public class PlayerMain : MonoBehaviour
         //Bag.SetActive(false);
     }
 
+    private void Start()
+    {
+        TransitionToState(new PlayerNormalState());
+    }
+
     public void OnMove(InputAction.CallbackContext context)
     {
-        _inputMove = context.ReadValue<Vector2>();
+        InputMove = context.ReadValue<Vector2>();
     }
 
     public void OnSprint(InputAction.CallbackContext context)
@@ -158,19 +166,34 @@ public class PlayerMain : MonoBehaviour
 
         }
     }
-    /* ... (OnInteract コメントアウト部分は変更なし) ... */
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        CarRigid car = FindAnyObjectByType<CarRigid>();
+        if(car != null)
+        {
+            TransitionToState(new PlayerRideCarState(car));
+        }
+    }
+
 
     private void Update()
     {
         // CharacterControllerがない、またはカメラがない場合は移動・回転をスキップ
         if (_characterController == null || _mainCameraTransform == null) return;
-
-        Movement();
-        // ★修正3: worldMoveVelocity の引数と、Update() からの呼び出しを削除
-        RotateCharactor();
+        
+        _activeState?.UpdateState(this);
+        
     }
 
-    private void Movement()
+    public void TransitionToState(PlayerState newState)
+    {
+        _activeState?.ExitState(this);
+        _activeState = newState;
+        _activeState.EnterState(this);
+    }
+
+    public void HandleMovement()
     {
         // var isGrounded = true; // ← この仮の接地フラグをCharacterControllerのものに戻す
         var isGrounded = _characterController.isGrounded;
@@ -207,7 +230,7 @@ public class PlayerMain : MonoBehaviour
         camForward.Normalize();
         camRight.Normalize();
 
-        Vector3 desiredHorizontalMove = camForward * _inputMove.y + camRight * _inputMove.x;
+        Vector3 desiredHorizontalMove = camForward * InputMove.y + camRight * InputMove.x;
 
         Vector3 horizontalMoveVelocity;
 
@@ -232,13 +255,13 @@ public class PlayerMain : MonoBehaviour
         _characterController.Move(moveDelta);
     }
 
-    // ★修正4: 引数と、不要な/エラーの原因となるロジックを削除
-    private void RotateCharactor()
+    
+    public void HandleRotate()
     {
         if (_mouseLook == null) return;
 
         // プレイヤーが移動入力を与えている場合のみ、目標回転をカメラの向きに更新する
-        if (_inputMove.sqrMagnitude > 0.01f)
+        if (InputMove.sqrMagnitude > 0.01f)
         {
             // float targetYRotation = _mouseLook.GetYRotation(); // エラーCS1061
             float targetYRotation = _mouseLook.getYRotation(); // ★修正: メソッド名を小文字で呼び出し

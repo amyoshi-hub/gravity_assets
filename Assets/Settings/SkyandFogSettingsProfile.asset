@@ -164,7 +164,7 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.434
+    m_Value: 0.016
   scatter:
     m_OverrideState: 1
     m_Value: 0.7
@@ -237,7 +237,7 @@ MonoBehaviour:
     m_Value: 247.96
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 800
+    m_Value: 781.81
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -363,7 +363,7 @@ MonoBehaviour:
     m_Value: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 15
+    m_Value: 30
   maximumVelocity:
     m_OverrideState: 1
     m_Value: 200

@@ -5,10 +5,25 @@ public class CarRigid : MonoBehaviour
 
     [SerializeField] private GameObject car; //�Ԃ̃��f��
     
-    [SerializeField] private int moveSpeed = 10; //speed
-    [SerializeField] private int resistance = 10; //�����ɑ΂����R��
-    [SerializeField] private int friction = 10; //
-    [SerializeField] private int sripValue = 10; //������̃X���b�v
+    [SerializeField] private float moveSpeed = 10; //speed
+    [SerializeField] private float maxSpeed = 10; //speed
+
+    [SerializeField] private int sripValue = 10; //スリップの強さ
+    [SerializeField] private float RotateSpeed = 0.5f; //回転の強さ
+    [SerializeField] private float startRotate = 8f; //回転し始めるスピード
+
+    [SerializeField] private float shakeIntensity = 8f; //start hweel shake
+
+
+
+
+    [Header("Grip Setting")]
+    [SerializeField] private float maxGrip = 10; //静止時のグリップ
+    [SerializeField] private float kineticGrip = 5; //滑っているときのグリップ
+
+    [SerializeField] private GameObject FrontRotateOrign;
+    [SerializeField] private GameObject Seat;
+
 
     private bool srip;
 
@@ -20,70 +35,115 @@ public class CarRigid : MonoBehaviour
 
     private Rigidbody rBody;
 
+
+    void Awake()
+    {
+        rBody = GetComponent<Rigidbody>();
+        if (rBody == null)
+        {
+            Debug.LogError("CarRigid: Rigidbodyが見つかりません！同じGameObjectについているか確認してください。");
+        }
+        rBody.centerOfMass = FrontRotateOrign.transform.localPosition;
+    }
+
+    void Start()
+    {
+    }
+
     public void Forward()
     {
-        if(Mathf.Abs(Dforce1) - Mathf.Abs(Dforce2) > forceThreadhold)
+        if(Mathf.Abs(Dforce2) - Mathf.Abs(Dforce1) > forceThreadhold)
         {
             Srip();
         }
-            Friction();
-    
-    
     }
 
     void Srip()
     {
         srip = true;
     }
+
     void Rotate(int handle_rotate)
     {
-        if (srip)
+        Vector3 localVel = transform.InverseTransformDirection(rBody.linearVelocity);
+        float forwardSpeed = Mathf.Abs(localVel.z); //速度の絶対値
+        
+
+
+        //ホイールスピン
+        if (srip && forwardSpeed < moveSpeed)
         {
-            float y_angle_change = sripValue * Mathf.Cos(Time.time);
-            car.transform.Rotate(0, y_angle_change * Time.fixedDeltaTime, 0);
+            //見た目だけの揺れ
+            float sripShake = (Random.Range(-1, shakeIntensity) * sripValue);
+
+            // 視覚的な演出（モデルだけを小刻みに震わせる）
+            car.transform.localRotation = Quaternion.Euler(0, sripShake * 8f, 0);
         }
 
-    }
-
-    void Resistance()
-    {
-        Rotate(0);
-    }
-
-    void Friction()
-    {
+        float speedMod = Mathf.Clamp01(forwardSpeed / startRotate);
+        speedMod = Mathf.Pow(speedMod, 2);
+        float y_angle_move = handle_rotate * RotateSpeed * speedMod;
+        
+        //car.transform.Rotate(0, y_angle_move, 0); //直接制御
+        
+        //物理的な制御
+        Quaternion deltaRotation = Quaternion.Euler(new Vector3(0, y_angle_move, 0));
+        rBody.MoveRotation(rBody.rotation * deltaRotation);
 
     }
 
     void ApplyDriveForce(float input) // input: -1 (���) ���� 1 (�O�i)
     {
-        // �����A��R�A���C���l��������ŁARigidbody�ɗ͂�������
-        rBody.AddForce(transform.forward * input * moveSpeed * Time.fixedDeltaTime, ForceMode.Acceleration);
+        if (rBody == null) return;
+        float driveInput = -input;
+
+        float currentVel = rBody.linearVelocity.magnitude;
+        float driveTorque = driveInput * moveSpeed;
+
+        if(!srip && currentVel < 2f && driveTorque > maxGrip)
+        {
+            srip = true;
+            Debug.Log("ホイールスピン開始");
+        }
+
+        float speedFactor = Mathf.Clamp01(1f - (currentVel / maxSpeed));
+
+        rBody.AddForce(transform.forward * driveInput * moveSpeed * speedFactor, ForceMode.Acceleration);
     }
 
     void FixedUpdate()
     {
-        if (rBody.linearVelocity.magnitude > 0.01f)
-        {
-            // ��R�i��C��R�ȂǁB���x�ɔ�Ⴕ�Č���j
-            rBody.AddForce(-rBody.linearVelocity * resistance * Time.fixedDeltaTime);
+        Vector3 localVel = transform.InverseTransformDirection(rBody.linearVelocity);
 
-            // ���C�i��ɎԂ̑��x�ɋt�炤�j
-            rBody.AddForce(-rBody.linearVelocity.normalized * friction * Time.fixedDeltaTime);
-        }
-        Forward();
+        // 2. 横方向（左右）の速度を打ち消す力を計算
+        // スリップ中はわざとこの力を弱めることでドリフトさせる
+        float sideGrip = srip ? 0.05f : 1.0f;
+        float lateralImpulse = -localVel.x * sideGrip;
+        rBody.AddRelativeForce(Vector3.right * lateralImpulse, ForceMode.VelocityChange);
 
-        ApplyDriveForce(1);
+        if (srip && localVel.magnitude < 5f) srip = false;
     }
 
-
-
-    //test�p
-    void Start()
+    public void Drive(Vector2 input)
     {
-        rBody = GetComponent<Rigidbody>();
+        // 前進・後退
+        if (Mathf.Abs(input.y) > 0.01f)
+        {
+            ApplyDriveForce(input.y);
+        }
+
+        // 旋回（ハンドル操作）
+        if (Mathf.Abs(input.x) > 0.01f)
+        {
+            Rotate(input.x > 0 ? 1 : -1); // 簡易的なハンドル操作
+        }
     }
 
+
+    public Vector3 GetDriverSeatLocal()
+    {
+        return Seat.transform.localPosition;
+    }
     // Update is called once per frame
     void Update()
     {
